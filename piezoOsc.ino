@@ -77,9 +77,9 @@ void loop() {
       outputBang(oldValue);
     }
     outputVolume(oldValue);
+    oldValue = currentValue;
   }
 
-  oldValue = currentValue;
 }
 
 void outputBang(int value) {
