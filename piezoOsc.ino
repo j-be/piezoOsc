@@ -62,38 +62,23 @@ class Envelope {
     }
 };
 
-class BangEnvelope : public Envelope {
-  private:
-    boolean aimed = true;
-    int aimThreshold = 2;
-
-  public:
-    virtual boolean isLocalMaximum(int newValue) {
-      boolean localMax = Envelope::isLocalMaximum(newValue);
-
-      if(this->aimed && localMax) {
-        this->aimed = false;
-        return true;
-      }
-
-      if (newValue < aimThreshold)
-        this->aimed = true;
-
-      if (this->aimed)
-        digitalWrite(13, HIGH);
-      else
-        digitalWrite(13, LOW);
-
-      return false;
-    }
-};
-
 class DrumPad {
 private:
   int analogPort;
   int oldValue;
   Envelope volumeEnv;
-  BangEnvelope bangEnv;
+  Envelope bangEnv;
+  int lastBangTime = 0;
+  int lastBangAmp = 0;
+
+  boolean isNotAfterhaul(int thisAmp) {
+    int timeDiff = millis() - lastBangTime;
+
+    float thisAmpFloat = thisAmp;
+    float threshold = (float)lastBangAmp * 50 / timeDiff;
+
+    return thisAmpFloat > threshold;
+  }
 
 public:
   DrumPad(int analogPort) {
@@ -105,7 +90,12 @@ public:
 
     if (volumeEnv.isLocalMaximum(currentValue)) {
       if (bangEnv.isLocalMaximum(currentValue))
-        outputBang(this->oldValue, this->analogPort);
+        if (this->isNotAfterhaul(this->oldValue)) {
+          outputBang(this->oldValue, this->analogPort);
+          this->lastBangTime = millis();
+          this->lastBangAmp = this->oldValue;
+        }
+
       outputVolume(this->oldValue, this->analogPort);
       this->oldValue = currentValue;
     }
