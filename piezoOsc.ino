@@ -1,7 +1,7 @@
 #include <OSCMessage.h>
 
 #define BAUD_RATE 115200
-#define NUM_PADS 4
+#define NUM_PADS 5
 #define ADDRESS_BUFFER_LENGTH 20
 
 //Teensy and Leonardo variants have special USB serial
